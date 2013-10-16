@@ -1,0 +1,232 @@
+<html>
+	<head>
+		<title>Super Text Editor With Regular Expressions (STEWRE) </title>
+		<meta name="description" content="Editor de texto con soporte para expresiones regulares y capacidad para previsualizar código HTML+CSS">
+		<meta name="author" content="Yuri Garces Ciemerozum">
+		<meta name="author" content="Francisco Vélez Ocaña">
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+		<link rel="stylesheet" type="text/css" href="STEWRE.css">
+<script type="text/javascript">
+/* Carga en el área de vista previa el texto escrito */
+function previsualiza(){
+	document.getElementById("previewarea").innerHTML = document.getElementById("texto").value;
+}
+
+/* Busca las cadenas que coincidan con la expresión regular escrita en 
+   la caja regex y las reemplaza por la cadena que hay en la caja reemplazo
+   Los resultados se previsualizan en el workarea de la derecha */	 
+function reemplaza(){
+	expresion = document.getElementById("regex").value;		 //expresión regular introducida
+	text      = document.getElementById("texto").value;		 //workarea de la izquierda
+	cambio    = document.getElementById("reemplazo").value;	//cadena de reemplazo
+	sensible  = "";																				 //sensibilidad a mayúsculas
+	
+	//Comprobamos si el checkbox está desmarcado
+	if(!document.getElementById("mayusculas").checked)
+		sensible = "i";	//Insensible a mayúsculas
+	
+	/*Creamos el objeto Exp de tipo RegExp que servirá para buscar la expresión regular	
+	  En las opciones, la "g" es para buscar todas las posibles coincidencias
+	  y la "i" es para indicar que no se quiere distinguir mayúsculas de minúsculas*/
+	Exp = new RegExp(expresion, "gm"+sensible);
+	
+	//Aplicamos la RegEx al texto y guardamos los cambios en el workarea de la derecha 
+	document.getElementById("texto_tmp").value = text.replace(Exp, cambio);
+}
+
+/* Busca las cadenas que coincidan con la expresión regular escrita en 
+   la caja regex_filtrar y las previsualiza en el workarea de la derecha */	 
+function filtra(){
+	expresion = document.getElementById("regex_filtrar").value; //expresión regular para filtrar
+	text      = document.getElementById("texto").value;				 //workarea de la izquierda
+	sensible  = "";																						 //sensibilidad a mayúsculas
+
+	//Sólo activamos el filtrado si el campo de filtro tiene algún valor
+	if(expresion!=""){
+		//Comprobamos si el checkbox está desmarcado
+		if(!document.getElementById("mayusculas").checked)
+			sensible = "i";	//Insensible a mayúsculas	
+
+		/*Creamos el objeto Exp de tipo RegExp que servirá para buscar la expresión regular	
+		  En las opciones, la "g" es para buscar todas las posibles coincidencias
+		  y la "i" es para indicar que no se quiere distinguir mayúsculas de minúsculas*/
+		Exp = new RegExp(expresion, "gm"+sensible);
+		
+		//Aplicamos la RegEx al texto y guardamos las coincidencias en el workarea de la derecha
+		document.getElementById("texto_tmp").value = text.match(Exp);
+	}
+}
+
+/* Rodea con el tag el texto seleccionado o, en caso de que no haya texto seleccionado, 
+   introduce el tag en el sitio en el que esté el cursor del área de trabajo de la izquierda*/
+function insertarTag(tag){
+	var text = document.getElementById("texto"); //workarea de la izquierda
+	
+	//Si no hay texto seleccionado
+	if(typeof document.selection != 'undefined' && document.selection) {
+		//Buscamos el punto en el que está el cursor para isertar el tag 
+		var str = document.selection.createRange().text;
+		text.focus();
+		var sel = document.selection.createRange();
+		//Los tags normales se ponen aquí
+		if(tag!="a"){				
+			sel.text = "<" + tag + ">" + str + "</" +tag+ ">";
+			sel.select();
+		}else{
+			//Si es enlace se solicita que introduzca una URL
+			var my_link = prompt("Introduce URL:","http://");
+			if (my_link != null) {
+				if(str.length==0){ str=my_link;	}
+				
+				sel.text = "<a href=\"" + my_link + "\">" + str + "</a>";
+				sel.select();
+			}
+		}
+	}else {
+		//Hay texto seleccionado
+		if(typeof text.selectionStart != 'undefined'){ 
+			//Tomamos el área seleccionada para poner el tag 
+			var start = text.selectionStart;
+			var end = text.selectionEnd;
+			var insText = text.value.substring(start, end);
+			//Los tags normales se ponen aquí
+			if(tag!="a"){
+				text.value = text.value.substr(0, start) + '<'+tag+'>' + insText + '</'+tag+'>'+ text.value.substr(end);
+				text.focus();
+				text.setSelectionRange(start+2+tag.length+insText.length+3+tag.length,start+2+tag.length+insText.length+3+tag.length);
+			}else{
+				//Si es enlace se solicita que introduzca una URL
+				var my_link = prompt("Introduce URL:","http://");
+				if (my_link != null) {
+					if(insText.length==0){ insText=my_link; }
+					
+					text.value = text.value.substr(0, start) +"<a href=\"" + my_link +"\">" + insText + "</a>"+ text.value.substr(end);
+					text.focus();
+					text.setSelectionRange(start+11+my_link.length+insText.length+4,start+11+my_link.length+insText.length+4);
+				}
+			}
+		}
+	}
+	//actualizamos los cambios en la zona de previsualización
+	previsualiza();
+}
+
+/* Cambia el texto del workarea de la izquierda por el texto que hay en el workarea 
+	 de la derecha y deja este último en blanco */
+function machaca(){
+	document.getElementById("texto").value	= document.getElementById("texto_tmp").value;
+	document.getElementById("texto_tmp").value = "";
+	previsualiza();
+}
+
+/* Muestra u oculta la tabla de ayuda para expresiones regulares */
+function mostrarAyuda(){
+	tabla = document.getElementById('tablasAyuda'); //Tabla de ayuda
+	boton = document.getElementById('botonAyuda');	//Botón para activar la tabla
+
+	if(tabla.style.display=="block"){ //mostrar -> oculto
+		tabla.style.display="none";
+		boton.value="Desplegar ayuda RegEx";
+	}else { //oculto -> mostrar
+		tabla.style.display="block";
+		boton.value="Ocultar ayuda RegEx";
+	}
+}
+
+/* Añade un comando de la tabla de ayuda a la caja de expresiones regulares*/
+function agregarRegEx(reg){
+	document.getElementById("regex").value = document.getElementById("regex").value+reg;
+}
+</script>
+	</head>
+	
+	<body>
+	<div id="workarea">
+	<!-- Campos con los cuadros de búsqueda -->
+	<fieldset id="searcharea"> <legend>Herramientas de búsqueda</legend>
+		<div id="linea1">
+			Usar RegEx:&nbsp;&nbsp; <input type="text" id="regex" />&nbsp;&nbsp; para reemplazar con: <input type="text" id="reemplazo" /> 
+			<input type="button" id="buscar" value="Reemplazar" onClick="reemplaza();">	
+		</div>
+		<div id="linea2">			
+			Filtrar RegEx: <input type="text" id="regex_filtrar" onKeyUp="filtra();"	/>
+			<input type="checkbox" id="mayusculas" checked="checked" onClick="filtra();"value="sensi" class="clicable"/> <label for="mayusculas" class="clicable">Sensible a las mayúsculas</label>
+		</div>
+	</fieldset>
+	<!-- Botones de formato -->
+	<div id="controlarea">
+	<input type="button" id="negrita"   value="N" onClick="insertarTag('b')" />
+	<input type="button" id="subrayado" value="S" onClick="insertarTag('u')" />
+	<input type="button" id="cursiva"   value="K" onClick="insertarTag('i')" />
+	<input type="button" id="enlace"    value="Enlace" onClick="insertarTag('a')" />
+	<input type="button" id="previs"    value="Previsualizar" onClick="previsualiza();" />
+	<input type="button" id="machacar"	value="&larr; Machacar texto" onClick="machaca();" />
+	<br />
+	</div>
+	<!-- workarea de la izquierda y de la derecha -->
+	<textarea name="texto" cols="46" rows="10" id="texto" onMouseUp="previsualiza();" onKeyUp="previsualiza();"></textarea> 
+	<textarea name="texto_tmp" cols="46" rows="10" id="texto_tmp"></textarea>	 
+	<!-- área para previsualizar el texto escrito con formato -->
+	<div id="previewarea"></div>
+	</div>	
+	<!-- zona para la tabla de ayuda -->
+	<div id="ayuda">
+		<input type="button" value="Desplegar ayuda RegEx" id="botonAyuda" onClick="mostrarAyuda()" />
+		<!-- Tabla desplegable de ayuda -->
+		<div id="tablasAyuda">
+		<table class="reference" id="reference">	
+			<tr>
+				<th width="120px" align="left">Expression</th>	 <!-- 22%/78% -->
+				<th width="235px" align="left">Description</th>
+			</tr>
+			<tr><td onClick="agregarRegEx('[abc]');"   class="clicable">[abc]</td> <td>Find any character between the brackets</td></tr>
+			<tr><td onClick="agregarRegEx('[^abc]');"  class="clicable">[^abc]</td><td>Find any character not between the brackets</td></tr>
+			<tr><td onClick="agregarRegEx('[0-9]');"   class="clicable">[0-9]</td> <td>Find any digit from 0 to 9</td></tr>
+			<tr><td onClick="agregarRegEx('[A-Z]');"   class="clicable">[A-Z]</td> <td>Find any character from uppercase A to uppercase Z</td></tr>
+			<tr><td onClick="agregarRegEx('[a-z]');"   class="clicable">[a-z]</td> <td>Find any character from lowercase a to lowercase z</td></tr>
+			<tr><td onClick="agregarRegEx('[A-z]');"   class="clicable">[A-z]</td> <td>Find any character from uppercase A to lowercase z</td></tr>
+			<tr><td onClick="agregarRegEx('[adgk]');"  class="clicable">[adgk]</td><td>Find any character in the given set</td></tr>
+			<tr><td onClick="agregarRegEx('[^adgk]');" class="clicable">[^adgk]</td><td>Find any character outside the given set</td></tr>
+			<tr><td onClick="agregarRegEx('(aa|bb|cc)');" class="clicable">(red|blue|green)</td><td>Find any of the alternatives specified</td></tr>
+			<tr>
+				<th width="120px" align="left">Metacharacter</th>
+				<th width="235px" align="left">Description</th>
+			</tr>
+			<tr><td onClick="agregarRegEx('.');"  class="clicable">. </td><td>Find a single character, except newline or line terminator</td></tr>
+			<tr><td onClick="agregarRegEx('\w');" class="clicable">\w</td><td>Find a word character</td></tr>
+			<tr><td onClick="agregarRegEx('\\W');" class="clicable">\W</td><td>Find a non-word character</td></tr>
+			<tr><td onClick="agregarRegEx('\d');" class="clicable">\d</td><td>Find a digit</td></tr>
+			<tr><td onClick="agregarRegEx('\D');" class="clicable">\D</td><td>Find a non-digit character</td></tr>
+			<tr><td onClick="agregarRegEx('\s');" class="clicable">\s</td><td>Find a whitespace character</td></tr>
+			<tr><td onClick="agregarRegEx('\S');" class="clicable">\S</td><td>Find a non-whitespace character</td></tr>
+			<tr><td onClick="agregarRegEx('\b');" class="clicable">\b</td><td>Find a match at the beginning/end of a word</td></tr>
+			<tr><td onClick="agregarRegEx('\B');" class="clicable">\B</td><td>Find a match not at the beginning/end of a word</td></tr>
+			<tr><td onClick="agregarRegEx('\0');" class="clicable">\0</td><td>Find a NUL character</td></tr>
+			<tr><td onClick="agregarRegEx('\n');" class="clicable">\n</td><td>Find a new line character</td></tr>
+			<tr><td onClick="agregarRegEx('\f');" class="clicable">\f</td><td>Find a form feed character</td></tr>
+			<tr><td onClick="agregarRegEx('\r');" class="clicable">\r</td><td>Find a carriage return character</td></tr>
+			<tr><td onClick="agregarRegEx('\t');" class="clicable">\t</td><td>Find a tab character</td></tr>
+			<tr><td onClick="agregarRegEx('\v');" class="clicable">\v</td><td>Find a vertical tab character</td></tr>
+			<tr><td onClick="agregarRegEx('\xxx');"	 class="clicable">\xxx</td><td>Find the character specified by an octal number xxx</td></tr>
+			<tr><td onClick="agregarRegEx('\xdd');"	 class="clicable">\xdd</td><td>Find the character specified by a hexadecimal number dd</td></tr>
+			<tr><td onClick="agregarRegEx('\uxxxx');" class="clicable">\uxxxx</td><td>Find the Unicode character specified by a hexadecimal number xxxx</td></tr>
+			<tr>
+				<th align="left" width="120px">Quantifier</th>
+				<th align="left" width="235px">Description</th>
+			</tr>
+			<tr><td onClick="agregarRegEx('+');"     class="clicable">n+</td><td>Matches any string that contains at least one n</td></tr>
+			<tr><td onClick="agregarRegEx('*');"     class="clicable">n*</td><td>Matches any string that contains zero or more occurrences of n</td></tr>
+			<tr><td onClick="agregarRegEx('?');"     class="clicable">n?</td><td>Matches any string that contains zero or one occurrences of n</td></tr>
+			<tr><td onClick="agregarRegEx('{X}');"	 class="clicable">n{X}</td><td>Matches any string that contains a sequence of <i>X</i> <i>n</i>'s</td></tr>
+			<tr><td onClick="agregarRegEx('{X,Y}');" class="clicable">n{X,Y}</td><td>Matches any string that contains a sequence of X to Y <i>n</i>'s</td></tr>
+			<tr><td onClick="agregarRegEx('{X,}');"	 class="clicable">n{X,}</td><td>Matches any string that contains a sequence of at least X <i>n</i>'s</td></tr>
+			<tr><td onClick="agregarRegEx('$');"     class="clicable">n$</td><td>Matches any string with n at the end of it</td></tr>
+			<tr><td onClick="agregarRegEx('^');"     class="clicable">^n</td><td>Matches any string with n at the beginning of it</td></tr>
+			<tr><td onClick="agregarRegEx('?=');"    class="clicable">?=n</td><td>Matches any string that is followed by a specific string n</td></tr>
+			<tr><td onClick="agregarRegEx('?!');"    class="clicable">?!n</td><td>Matches any string that is not followed by a specific string n</td></tr>
+			<tr><th colspan="2" align="left"><a href="http://www.w3schools.com/jsref/jsref_obj_regexp.asp">www.w3schools.com/jsref/jsref_obj_regexp.asp</a></th> </tr>
+		</table>		
+		</div>
+	</div>
+</body>	
+</html>
