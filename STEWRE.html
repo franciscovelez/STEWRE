@@ -5,7 +5,66 @@
 		<meta name="author" content="Yuri Garces Ciemerozum">
 		<meta name="author" content="Francisco Vélez Ocaña">
 		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-		<link rel="stylesheet" type="text/css" href="STEWRE.css">
+		
+<style type="text/css">
+body, input, table{
+	font-family: verdana,helvetica,arial,sans-serif;
+	font-size: small;
+}
+/******* Botones *******/
+input{		
+	border: 1px solid #C3C3C3;
+	border-collapse: collapse;
+}
+input[type=button]{       background-color: #E5EECC; }
+input[type=button]:hover{ background-color: #CCEEAA; cursor: pointer;}
+#negrita{ font-weight:bold;}
+#cursiva{ font-style:italic;}
+#subrayado, #enlace{ text-decoration: underline; }
+#machacar{
+	float:right;
+	margin-right:2px;
+}
+/******* Áreas de trabajo *******/
+#workarea{ 
+	float: left;
+	width: 700px;
+	margin: 0px 15px 0px 5px;
+}
+#workarea div{	margin-bottom: 10px; }
+#controlarea{	margin-bottom:	5px; }
+#regex_filtrar{	margin-right: 216px; }
+#searcharea{
+	border: 1px solid #C3C3C3;
+	margin-left:0px;
+	margin-bottom:20px;
+}
+#previewarea{
+	border: 1px solid #C3C3C3;
+	margin-top:5px;
+	padding: 5px;
+}
+/******* Área de ayuda *******/
+#ayuda{ 
+	float: left;
+	width: 370px;
+	margin: 8px 5px 0px 0px; 
+}
+#tablasAyuda{ 
+	display:none;
+	margin-top:5px;
+}
+table.reference,table.reference th, table.reference td {
+	border: 1px solid #C3C3C3;
+	border-collapse: collapse;
+	padding: 3px;
+	text-align: left;		 
+}
+table.reference th {      background-color: #E5EECC; }
+table.reference tr:hover{ background-color: #CCEEAA;}
+.clicable{ cursor: pointer; }
+</style>
+
 <script type="text/javascript">
 /* Carga en el área de vista previa el texto escrito */
 function previsualiza(){
